@@ -66,9 +66,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ADDONS="$(find . -maxdepth 2 -type f -name 'config.json' -printf '%h\n' | sed 's|^\./||' | sort -u)"
+          ADDONS="$(find . -maxdepth 2 -type f -name 'config.yaml' -printf '%h\n' | sed 's|^\./||' | sort -u)"
           if [[ -z "${ADDONS}" ]]; then
-            echo "Keine Add-ons (Ordner mit config.json) gefunden." >&2
+            echo "Keine Add-ons (Ordner mit config.yaml) gefunden." >&2
             exit 1
           fi
           echo "Gefundene Add-ons:"
