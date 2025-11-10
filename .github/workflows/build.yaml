@@ -1,0 +1,127 @@
+name: Build & Publish Home Assistant Add-ons
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+  # Tags wie v1.2.3 erstellen Release-Tags für Images
+  tags:
+    - 'v*.*.*'
+    - 'v*.*'
+    - 'v*'
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  ORG: ${{ github.repository_owner }}
+  DEFAULT_PLATFORMS: linux/amd64,linux/arm64,linux/arm/v7
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute tags/labels
+        id: meta
+        run: |
+          # Image-Tags bestimmen
+          SHORT_SHA=${GITHUB_SHA::7}
+          # Standard-Tag-Liste
+          TAGS=""
+          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref_type }}" != "tag" ]]; then
+            # Branch push -> latest + sha
+            TAGS="latest,sha-${SHORT_SHA}"
+          fi
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            # Release Tag -> vX.Y.Z + latest
+            TAG="${GITHUB_REF##*/}"
+            TAGS="${TAG},latest"
+          fi
+          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
+
+          # Plattformen (kannst du per Repo-ENV überschreiben)
+          echo "platforms=${{ env.DEFAULT_PLATFORMS }}" >> $GITHUB_OUTPUT
+
+      - name: Discover add-on directories
+        id: discover
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Alle Ordner finden, die eine config.json enthalten
+          ADDONS=$(find . -maxdepth 2 -type f -name 'config.json' -printf '%h\n' | sed 's|^\./||' | sort -u)
+          if [[ -z "${ADDONS}" ]]; then
+            echo "Keine Add-ons (Ordner mit config.json) gefunden." >&2
+            exit 1
+          fi
+          echo "Gefundene Add-ons:"
+          echo "${ADDONS}" | sed 's/^/ - /'
+          # Als multi-line Output
+          echo "list<<EOF" >> $GITHUB_OUTPUT
+          echo "${ADDONS}" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Build & Push all add-ons (multi-arch)
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          IFS=$'\n' read -r -d '' -a ADDONS < <(printf '%s\0' "${{ steps.discover.outputs.list }}")
+          IFS=',' read -r -a TAGS <<< "${{ steps.meta.outputs.tags }}"
+          PLATFORMS="${{ steps.meta.outputs.platforms }}"
+
+          for ADDON_DIR in "${ADDONS[@]}"; do
+            # Beispiel-Image-Name: ghcr.io/<owner>/ha-addon-<folder>
+            ADDON_NAME=$(basename "${ADDON_DIR}")
+            IMAGE="${{ env.REGISTRY }}/${{ env.ORG }}/ha-addon-${ADDON_NAME}"
+
+            echo "::group::Build ${ADDON_NAME}"
+            echo "Building ${IMAGE}"
+            # Tags zusammenbauen
+            TAG_ARGS=()
+            for T in "${TAGS[@]}"; do
+              # Branch-Push ohne Tags -> T kann leer sein; dann nur sha-Tag verwenden
+              [[ -n "$T" ]] && TAG_ARGS+=( "--tag" "${IMAGE}:${T}" )
+            done
+            # Wenn keine Tags entstanden sind (z.B. PR), einen pre Tag vergeben
+            if [[ ${#TAG_ARGS[@]} -eq 0 ]]; then
+              TAG_ARGS=( "--tag" "${IMAGE}:pr-${{ github.event.number || 'check' }}-${GITHUB_SHA::7}" )
+            fi
+
+            docker buildx build \
+              --platform "${PLATFORMS}" \
+              --provenance=false \
+              --sbom=false \
+              --cache-from "type=gha" \
+              --cache-to "type=gha,mode=max" \
+              "${TAG_ARGS[@]}" \
+              --push \
+              --file "${ADDON_DIR}/Dockerfile" \
+              "${ADDON_DIR}"
+
+            echo "::endgroup::"
+          done
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "✅ Build abgeschlossen."
+          echo "Images liegen unter ghcr.io/${{ env.ORG }}/ha-addon-<addon-folder>:<tags>."
