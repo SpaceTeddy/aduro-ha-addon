@@ -13,7 +13,7 @@ boot: auto
 stage: stable
 
 # Wichtig für GHCR: komplett lowercase
-image: "ghcr.io/spaceteddy/ha-addon-aduro-client-{arch}"
+image: ghcr.io/spaceteddy/aduro-client
 
 # Für Discovery/UDP/MDNS am zuverlässigsten:
 host_network: true
