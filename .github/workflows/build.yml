@@ -27,4 +27,4 @@ jobs:
             --test
             --all
             --target aduro-client
-            --image ghcr.io/spaceteddy/ha-addon-aduro-client-{arch}
+            --docker-hub spaceteddy
