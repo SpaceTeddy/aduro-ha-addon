@@ -3,12 +3,11 @@ name: Build & Publish Home Assistant Add-ons
 on:
   push:
     branches: [ main, master ]
+    tags:
+      - 'v*.*.*'
+      - 'v*.*'
+      - 'v*'
   pull_request:
-  # Tags wie v1.2.3 erstellen Release-Tags für Images
-  tags:
-    - 'v*.*.*'
-    - 'v*.*'
-    - 'v*'
 
 permissions:
   contents: read
@@ -42,68 +41,72 @@ jobs:
 
       - name: Compute tags/labels
         id: meta
+        shell: bash
         run: |
-          # Image-Tags bestimmen
-          SHORT_SHA=${GITHUB_SHA::7}
-          # Standard-Tag-Liste
-          TAGS=""
-          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref_type }}" != "tag" ]]; then
-            # Branch push -> latest + sha
-            TAGS="latest,sha-${SHORT_SHA}"
-          fi
-          if [[ "${{ github.ref_type }}" == "tag" ]]; then
-            # Release Tag -> vX.Y.Z + latest
-            TAG="${GITHUB_REF##*/}"
-            TAGS="${TAG},latest"
-          fi
-          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
+          set -euo pipefail
+          SHORT_SHA="${GITHUB_SHA::7}"
 
-          # Plattformen (kannst du per Repo-ENV überschreiben)
-          echo "platforms=${{ env.DEFAULT_PLATFORMS }}" >> $GITHUB_OUTPUT
+          # Standard: Branch-Push -> latest + sha
+          TAGS=("sha-${SHORT_SHA}")
+          if [[ "${GITHUB_REF}" == refs/heads/* ]]; then
+            TAGS+=("latest")
+          fi
+
+          # Wenn Tag-Push (refs/tags/vX.Y[.Z]) -> v-Tag + latest
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            REF_TAG="${GITHUB_REF#refs/tags/}"
+            TAGS=("${REF_TAG}" "latest")
+          fi
+
+          printf 'tags=%s\n' "$(IFS=,; echo "${TAGS[*]}")" >> "$GITHUB_OUTPUT"
+          echo "platforms=${{ env.DEFAULT_PLATFORMS }}" >> "$GITHUB_OUTPUT"
 
       - name: Discover add-on directories
         id: discover
         shell: bash
         run: |
           set -euo pipefail
-          # Alle Ordner finden, die eine config.json enthalten
-          ADDONS=$(find . -maxdepth 2 -type f -name 'config.json' -printf '%h\n' | sed 's|^\./||' | sort -u)
+          ADDONS="$(find . -maxdepth 2 -type f -name 'config.json' -printf '%h\n' | sed 's|^\./||' | sort -u)"
           if [[ -z "${ADDONS}" ]]; then
             echo "Keine Add-ons (Ordner mit config.json) gefunden." >&2
             exit 1
           fi
           echo "Gefundene Add-ons:"
           echo "${ADDONS}" | sed 's/^/ - /'
-          # Als multi-line Output
-          echo "list<<EOF" >> $GITHUB_OUTPUT
-          echo "${ADDONS}" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          {
+            echo 'list<<EOF'
+            echo "${ADDONS}"
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
 
       - name: Build & Push all add-ons (multi-arch)
         shell: bash
         run: |
           set -euo pipefail
 
-          IFS=$'\n' read -r -d '' -a ADDONS < <(printf '%s\0' "${{ steps.discover.outputs.list }}")
-          IFS=',' read -r -a TAGS <<< "${{ steps.meta.outputs.tags }}"
           PLATFORMS="${{ steps.meta.outputs.platforms }}"
+          IFS=',' read -r -a TAGS <<< "${{ steps.meta.outputs.tags }}"
+
+          # Multiline Output -> in Array übernehmen
+          mapfile -t ADDONS < <(printf '%s\n' "${{ steps.discover.outputs.list }}")
 
           for ADDON_DIR in "${ADDONS[@]}"; do
-            # Beispiel-Image-Name: ghcr.io/<owner>/ha-addon-<folder>
-            ADDON_NAME=$(basename "${ADDON_DIR}")
+            [[ -z "$ADDON_DIR" ]] && continue
+            ADDON_NAME="$(basename "$ADDON_DIR")"
             IMAGE="${{ env.REGISTRY }}/${{ env.ORG }}/ha-addon-${ADDON_NAME}"
 
             echo "::group::Build ${ADDON_NAME}"
             echo "Building ${IMAGE}"
-            # Tags zusammenbauen
+
             TAG_ARGS=()
             for T in "${TAGS[@]}"; do
-              # Branch-Push ohne Tags -> T kann leer sein; dann nur sha-Tag verwenden
-              [[ -n "$T" ]] && TAG_ARGS+=( "--tag" "${IMAGE}:${T}" )
+              [[ -n "$T" ]] && TAG_ARGS+=( --tag "${IMAGE}:${T}" )
             done
-            # Wenn keine Tags entstanden sind (z.B. PR), einen pre Tag vergeben
+
+            # PRs / Sonderfälle ohne Tags → Fallback-Tag
             if [[ ${#TAG_ARGS[@]} -eq 0 ]]; then
-              TAG_ARGS=( "--tag" "${IMAGE}:pr-${{ github.event.number || 'check' }}-${GITHUB_SHA::7}" )
+              PR_TAG="pr-${{ github.event.pull_request.number || 'check' }}-${GITHUB_SHA::7}"
+              TAG_ARGS=( --tag "${IMAGE}:${PR_TAG}" )
             fi
 
             docker buildx build \
@@ -116,7 +119,6 @@ jobs:
               --push \
               --file "${ADDON_DIR}/Dockerfile" \
               "${ADDON_DIR}"
-
             echo "::endgroup::"
           done
 
