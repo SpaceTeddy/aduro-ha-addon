@@ -1,26 +1,21 @@
-name: Build & Publish Home Assistant Add-ons
+name: Build & Publish Add-on to GHCR
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main ]
     tags:
-      - 'v*.*.*'
-      - 'v*.*'
       - 'v*'
-  pull_request:
-
-permissions:
-  contents: read
-  packages: write
 
 env:
   REGISTRY: ghcr.io
-  ORG: ${{ github.repository_owner }}
-  DEFAULT_PLATFORMS: linux/amd64,linux/arm64,linux/arm/v7
+  IMAGE_NAME: spaceteddy/aduro-client
 
 jobs:
-  build:
+  build-and-push:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
 
     steps:
       - name: Checkout
@@ -32,105 +27,55 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Login to GHCR
+      - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
-          registry: ghcr.io
+          registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Compute tags/labels
-        id: meta
+      # Version aus aduro-client/config.yaml lesen (Feld: version: "x.y.z")
+      - name: Read version from aduro-client/config.yaml
+        id: ver
         shell: bash
         run: |
-          set -euo pipefail
-          SHORT_SHA="${GITHUB_SHA::7}"
-
-          # Standard: Branch-Push -> latest + sha
-          TAGS=("sha-${SHORT_SHA}")
-          if [[ "${GITHUB_REF}" == refs/heads/* ]]; then
-            TAGS+=("latest")
+          RAW=$(grep -E '^version:' aduro-client/config.yaml | head -n1 || true)
+          VER=$(echo "$RAW" | sed -E 's/^[^"]+"([^"]+)".*$/\1/')
+          if [[ -z "$VER" ]]; then
+            VER="latest"
           fi
+          echo "version=$VER" >> "$GITHUB_OUTPUT"
 
-          # Wenn Tag-Push (refs/tags/vX.Y[.Z]) -> v-Tag + latest
-          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-            REF_TAG="${GITHUB_REF#refs/tags/}"
-            TAGS=("${REF_TAG}" "latest")
-          fi
-
-          printf 'tags=%s\n' "$(IFS=,; echo "${TAGS[*]}")" >> "$GITHUB_OUTPUT"
-          echo "platforms=${{ env.DEFAULT_PLATFORMS }}" >> "$GITHUB_OUTPUT"
-
-      - name: Discover add-on directories
-        id: discover
+      # Optionales Git-Tag (vX.Y.Z) in X.Y.Z umwandeln
+      - name: Determine tag from ref (optional)
+        id: ref
         shell: bash
         run: |
-          set -euo pipefail
-          ADDONS="$(find . -maxdepth 2 -type f -name 'config.yaml' -printf '%h\n' | sed 's|^\./||' | sort -u)"
-          if [[ -z "${ADDONS}" ]]; then
-            echo "Keine Add-ons (Ordner mit config.yaml) gefunden." >&2
-            exit 1
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            TAG="${GITHUB_REF_NAME#v}"
+          else
+            TAG=""
           fi
-          echo "Gefundene Add-ons:"
-          echo "${ADDONS}" | sed 's/^/ - /'
-          {
-            echo 'list<<EOF'
-            echo "${ADDONS}"
-            echo 'EOF'
-          } >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 
-      - name: Build & Push all add-ons (multi-arch)
+      # Tags vorbereiten (ohne leeres drittes Tag)
+      - name: Prepare tag list
+        id: prep
         shell: bash
         run: |
-          set -euo pipefail
+          TAGS="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.ver.outputs.version }},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
+          if [[ -n "${{ steps.ref.outputs.tag }}" ]]; then
+            TAGS="$TAGS,${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.ref.outputs.tag }}"
+          fi
+          echo "tags=$TAGS" >> "$GITHUB_OUTPUT"
 
-          PLATFORMS="${{ steps.meta.outputs.platforms }}"
-          IFS=',' read -r -a TAGS <<< "${{ steps.meta.outputs.tags }}"
-
-          # Multiline Output -> Array
-          mapfile -t ADDONS < <(printf '%s\n' "${{ steps.discover.outputs.list }}")
-
-          # Owner/Org für GHCR immer lowercase
-          ORG_LC="$(echo "${{ env.ORG }}" | tr '[:upper:]' '[:lower:]')"
-
-          for ADDON_DIR in "${ADDONS[@]}"; do
-            [[ -z "$ADDON_DIR" ]] && continue
-
-            ADDON_NAME="$(basename "$ADDON_DIR")"
-            ADDON_NAME_LC="$(echo "$ADDON_NAME" | tr '[:upper:]' '[:lower:]')"
-
-            IMAGE="${{ env.REGISTRY }}/${ORG_LC}/ha-addon-${ADDON_NAME_LC}"
-
-            echo "::group::Build ${ADDON_NAME}"
-            echo "Building ${IMAGE}"
-
-            TAG_ARGS=()
-            for T in "${TAGS[@]}"; do
-              [[ -n "$T" ]] && TAG_ARGS+=( --tag "${IMAGE}:${T}" )
-            done
-
-            # PR / Sonderfall ohne Tags → Fallback
-            if [[ ${#TAG_ARGS[@]} -eq 0 ]]; then
-              PR_NUM="${{ github.event.pull_request.number }}"
-              [[ -z "${PR_NUM}" ]] && PR_NUM="check"
-              TAG_ARGS=( --tag "${IMAGE}:pr-${PR_NUM}-${GITHUB_SHA::7}" )
-            fi
-
-            docker buildx build \
-              --platform "${PLATFORMS}" \
-              --provenance=false \
-              --sbom=false \
-              --cache-from "type=gha" \
-              --cache-to "type=gha,mode=max" \
-              "${TAG_ARGS[@]}" \
-              --push \
-              --file "${ADDON_DIR}/Dockerfile" \
-              "${ADDON_DIR}"
-            echo "::endgroup::"
-          done
-
-      - name: Summary
-        if: always()
-        run: |
-          echo "✅ Build abgeschlossen."
-          echo "Images liegen unter ghcr.io/${{ env.ORG }}/ha-addon-<addon-folder>:<tags>."
+      - name: Build & Push (multi-arch manifest)
+        uses: docker/build-push-action@v6
+        with:
+          context: ./aduro-client
+          file: ./aduro-client/Dockerfile
+          push: true
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          tags: ${{ steps.prep.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
