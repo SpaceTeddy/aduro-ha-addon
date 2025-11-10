@@ -1,7 +1,7 @@
 {
   "name": "Aduro Client",
   "slug": "aduro-client",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "description": "MQTT bridge for Aduro/NBE pellet stoves via pyduro",
   "arch": [
     "amd64",
