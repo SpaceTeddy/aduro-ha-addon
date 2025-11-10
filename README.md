@@ -24,7 +24,7 @@ This add-on replaces Python-script integrations with a containerized MQTT bridge
 ### Published by the Add-on
 | Topic | Description | Example |
 |-------|--------------|----------|
-| `<base>/discovery` | Stove serial, IP, type, version | `{"DISCOVERY":{"StoveSerial":"50325","StoveIP":"192.168.0.55"}}` |
+| `<base>/discovery` | Stove serial, IP, type, version | `{"DISCOVERY":{"StoveSerial":"11111","StoveIP":"192.168.0.55"}}` |
 | `<base>/status` | Stove status parameters | `{"STATUS":{"HeatLevel":"2","State":"Running"}}` |
 | `<base>/operating_data` | Temperatures, power, runtime | `{"OPERATING_DATA":{"Power_pct":"50","SmokeTemp":"145"}}` |
 | `<base>/network` | Network information | `{"NETWORK":{"RouterSSID":"MyWiFi","StoveRSSI":"-64"}}` |
