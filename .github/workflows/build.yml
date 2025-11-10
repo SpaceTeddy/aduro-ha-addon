@@ -20,6 +20,10 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      # Wichtig:
+      #  - --target ist der Ordnername relativ zum Repo-Root
+      #  - --image setzt einen gültigen Test-Repo-Namen (kein führender Slash, lowercase)
+      #  - --test -> kein Push
       - name: Home Assistant Builder (test build)
         uses: home-assistant/builder@master
         with:
@@ -27,4 +31,4 @@ jobs:
             --test
             --all
             --target aduro-client
-            --docker-hub spaceteddy
+            --image spaceteddy/aduro-client-{arch}
