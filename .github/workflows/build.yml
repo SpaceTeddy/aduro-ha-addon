@@ -87,13 +87,19 @@ jobs:
           PLATFORMS="${{ steps.meta.outputs.platforms }}"
           IFS=',' read -r -a TAGS <<< "${{ steps.meta.outputs.tags }}"
 
-          # Multiline Output -> in Array übernehmen
+          # Multiline Output -> Array
           mapfile -t ADDONS < <(printf '%s\n' "${{ steps.discover.outputs.list }}")
+
+          # Owner/Org für GHCR immer lowercase
+          ORG_LC="$(echo "${{ env.ORG }}" | tr '[:upper:]' '[:lower:]')"
 
           for ADDON_DIR in "${ADDONS[@]}"; do
             [[ -z "$ADDON_DIR" ]] && continue
+
             ADDON_NAME="$(basename "$ADDON_DIR")"
-            IMAGE="${{ env.REGISTRY }}/${{ env.ORG }}/ha-addon-${ADDON_NAME}"
+            ADDON_NAME_LC="$(echo "$ADDON_NAME" | tr '[:upper:]' '[:lower:]')"
+
+            IMAGE="${{ env.REGISTRY }}/${ORG_LC}/ha-addon-${ADDON_NAME_LC}"
 
             echo "::group::Build ${ADDON_NAME}"
             echo "Building ${IMAGE}"
@@ -103,10 +109,11 @@ jobs:
               [[ -n "$T" ]] && TAG_ARGS+=( --tag "${IMAGE}:${T}" )
             done
 
-            # PRs / Sonderfälle ohne Tags → Fallback-Tag
+            # PR / Sonderfall ohne Tags → Fallback
             if [[ ${#TAG_ARGS[@]} -eq 0 ]]; then
-              PR_TAG="pr-${{ github.event.pull_request.number || 'check' }}-${GITHUB_SHA::7}"
-              TAG_ARGS=( --tag "${IMAGE}:${PR_TAG}" )
+              PR_NUM="${{ github.event.pull_request.number }}"
+              [[ -z "${PR_NUM}" ]] && PR_NUM="check"
+              TAG_ARGS=( --tag "${IMAGE}:pr-${PR_NUM}-${GITHUB_SHA::7}" )
             fi
 
             docker buildx build \
