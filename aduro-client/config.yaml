@@ -1,0 +1,89 @@
+name: Aduro Client
+version: "0.6.2"
+slug: aduro-client
+description: Aduro/NBE client that reads data and exposes an MQTT command bridge (raw/set/get) for Home Assistant.
+url: https://github.com/spaceteddy/aduro-ha-addon
+arch:
+  - amd64
+  - aarch64
+  - armv7
+init: false
+startup: application
+boot: auto
+stage: stable
+
+# Für Discovery/UDP/MDNS am zuverlässigsten:
+host_network: true
+
+# Falls du TLS-CA aus /config referenzierst:
+map:
+  - config:ro
+
+options:
+  # --- MQTT Broker ---
+  mqtt_server_ip: "core-mosquitto"
+  mqtt_server_port: 1883
+  mqtt_username: ""
+  mqtt_password: ""
+  mqtt_base_path: "aduro_h2"
+
+  # --- Stove Zugang ---
+  stove_serial: ""
+  stove_pin: ""
+
+  # --- Betriebsmodus Abfragen ---
+  mode: "all"                  # status|network|consumption|all
+  stove_temp_entity: "sensor.aduro_stove_temperature"
+  hot_threshold: 100
+  interval_hot_seconds: 15
+  interval_cold_seconds: 60
+  rediscover_every_n_cycles: 20
+
+  # --- Adresswahl ---
+  stove_host_override: ""      # z.B. 192.168.0.50 (empfohlen wenn bekannt)
+  cloud_fallback_host: "apprelay20.stokercloud.dk"
+
+  # --- Logging & Debug ---
+  log_level: "INFO"            # DEBUG|INFO|WARNING|ERROR
+  publish_debug: true          # zusätzliche Debug-Topics unter <base>/debug/*
+
+  # --- TLS (optional) ---
+  mqtt_tls: false
+  mqtt_tls_insecure: false
+  mqtt_ca_cert: ""             # z.B. /config/ca.crt
+
+  # --- Command-Bridge ---
+  enable_commands: true
+  allowed_function_ids: "2,5,6,10,11"   # RAW Allowlist
+  command_qos: 0
+
+schema:
+  mqtt_server_ip: str
+  mqtt_server_port: int
+  mqtt_username: str
+  mqtt_password: str
+  mqtt_base_path: str
+
+  stove_serial: str
+  stove_pin: str
+
+  mode: str
+  stove_temp_entity: str
+  hot_threshold: float
+  interval_hot_seconds: int
+  interval_cold_seconds: int
+  rediscover_every_n_cycles: int
+
+  stove_host_override: str
+  cloud_fallback_host: str
+
+  log_level: str
+  publish_debug: bool
+
+  mqtt_tls: bool
+  mqtt_tls_insecure: bool
+  mqtt_ca_cert: str
+
+  enable_commands: bool
+  allowed_function_ids: str
+  command_qos: int
