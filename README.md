@@ -124,7 +124,7 @@ aduro_alarm_reset:
       data:
         topic: aduro_h2/cmd/set
         payload: '{"type":"set","path":"misc.reset_alarm","value":"1","correlation_id":"alarm_reset"}'
-
+```
 ### Example Dashboard Configuration
 ```yaml
 type: entities
