@@ -20,11 +20,12 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Home Assistant Builder (force lowercase image, no push)
+      # Wichtig: --target ist der Ordnername relativ zum Repo-Root
+      - name: Home Assistant Builder (test build)
         uses: home-assistant/builder@master
         with:
           args: |
-            --test \
-            --all \
-            --target /github/workspace/aduro-client \
+            --test
+            --amd64 --aarch64 --armv7
+            --target aduro-client
             --image ghcr.io/spaceteddy/ha-addon-aduro-client-{arch}
