@@ -20,12 +20,11 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # Wichtig: --target ist der Ordnername relativ zum Repo-Root
       - name: Home Assistant Builder (test build)
         uses: home-assistant/builder@master
         with:
-          args: |
+          args: >
             --test
-            --amd64 --aarch64 --armv7
+            --all
             --target aduro-client
             --image ghcr.io/spaceteddy/ha-addon-aduro-client-{arch}
