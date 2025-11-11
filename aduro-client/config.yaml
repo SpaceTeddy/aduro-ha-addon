@@ -1,5 +1,5 @@
 name: Aduro Client
-version: "0.6.6"
+version: "0.6.7"
 slug: aduro-client
 description: Aduro/NBE client that reads data and exposes an MQTT command bridge (raw/set/get) for Home Assistant.
 url: https://github.com/spaceteddy/aduro-ha-addon
@@ -12,10 +12,10 @@ startup: application
 boot: auto
 stage: stable
 
-# Für Discovery/UDP/MDNS am zuverlässigsten:
+# Discovery/UDP/MDNS
 host_network: true
 
-# Falls du TLS-CA aus /config referenzierst:
+# if TLS-CA refers from /config :
 map:
   - config:ro
 
@@ -39,18 +39,18 @@ options:
   interval_cold_seconds: 60
   rediscover_every_n_cycles: 20
 
-  # --- Adresswahl ---
-  stove_host_override: ""      # z.B. 192.168.0.50 (empfohlen wenn bekannt)
+  # --- Stove address ---
+  stove_host_override: ""      # z.B. 192.168.0.50 (if available)
   cloud_fallback_host: "apprelay20.stokercloud.dk"
 
   # --- Logging & Debug ---
   log_level: "INFO"            # DEBUG|INFO|WARNING|ERROR
-  publish_debug: true          # zusätzliche Debug-Topics unter <base>/debug/*
+  publish_debug: true          # additional Debug-Topics under <base>/debug/*
 
   # --- TLS (optional) ---
   mqtt_tls: false
   mqtt_tls_insecure: false
-  mqtt_ca_cert: ""             # z.B. /config/ca.crt
+  mqtt_ca_cert: ""             # i.E. /config/ca.crt
 
   # --- Command-Bridge ---
   enable_commands: true
