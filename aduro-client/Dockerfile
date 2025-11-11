@@ -1,14 +1,14 @@
 FROM python:3.12-slim
 
-# Systempakete (für Requests/cryptography & jq)
+# Systempackages (for Requests/cryptography & jq)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl jq ca-certificates build-essential libffi-dev libssl-dev \
  && rm -rf /var/lib/apt/lists/*
 
-# Pip Tooling modernisieren (wichtig für Wheels)
+# Pip Tooling update
 RUN python -m pip install --no-cache-dir --upgrade pip setuptools wheel
 
-# Python-Abhängigkeiten
+# Python-dependencies
 COPY requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
