@@ -1,5 +1,5 @@
 name: Aduro Client
-version: "0.7.2"
+version: "0.7.3"
 slug: aduro-client
 description: Aduro/NBE client that reads data and exposes an MQTT command bridge (raw/set/get) for Home Assistant.
 url: https://github.com/spaceteddy/aduro-ha-addon

@@ -695,9 +695,10 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
         pub_cfg(s["component"], node_id, s["object_id"], cfg)
 
         # ---- Button: Start ----
-    STOVE_SWITCH_PATH = os.getenv("STOVE_SWITCH_PATH", "system.on_off")
-    STOVE_ON_VALUE    = os.getenv("STOVE_ON_VALUE", "1")
-    STOVE_OFF_VALUE   = os.getenv("STOVE_OFF_VALUE", "0")
+    STOVE_SWITCH_PATH_ON  = os.getenv("STOVE_SWITCH_PATH_ON", "misc.start")
+    STOVE_SWITCH_PATH_OFF = os.getenv("STOVE_SWITCH_PATH_OFF", "misc.stop")
+    STOVE_VALUE           = os.getenv("STOVE_ON_VALUE", "1")
+
 
     stove_start_btn = {
         "name": "Aduro H2 Start",
@@ -706,7 +707,7 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
         "device": device,
         "command_topic": _topic("cmd/set", base),
         # Button sendet beim Drücken genau diesen Payload:
-        "payload_press": "{\"type\":\"set\",\"path\":\"" + STOVE_SWITCH_PATH + "\",\"value\":\"" + STOVE_ON_VALUE + "\"}",
+        "payload_press": "{\"type\":\"set\",\"path\":\"" + STOVE_SWITCH_PATH_ON + "\",\"value\":\"" + STOVE_VALUE + "\"}",
         "icon": "mdi:play"
     }
     pub_cfg("button", node_id, "aduro_stove_start", stove_start_btn)
@@ -718,7 +719,7 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
         "availability": availability,
         "device": device,
         "command_topic": _topic("cmd/set", base),
-        "payload_press": "{\"type\":\"set\",\"path\":\"" + STOVE_SWITCH_PATH + "\",\"value\":\"" + STOVE_OFF_VALUE + "\"}",
+        "payload_press": "{\"type\":\"set\",\"path\":\"" + STOVE_SWITCH_PATH_OFF + "\",\"value\":\"" + STOVE_VALUE + "\"}",
         "icon": "mdi:stop"
     }
     pub_cfg("button", node_id, "aduro_stove_stop", stove_stop_btn)
@@ -741,7 +742,7 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
     pub_cfg("binary_sensor", node_id, "aduro_running", running_bin)
 
     # === ENV-Defaults für Pfade/Werte (bei Bedarf anpassen) ===
-    AUGER_FORCE_PATH   = os.getenv("AUGER_FORCE_PATH", "maintenance.force_auger")
+    AUGER_FORCE_PATH   = os.getenv("AUGER_FORCE_PATH", "auger.forced_run")
     AUGER_FORCE_VALUE  = os.getenv("AUGER_FORCE_VALUE", "1")
 
     CLEAN_STOVE_PATH   = os.getenv("CLEAN_STOVE_PATH", "maintenance.clean_stove")
