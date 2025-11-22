@@ -740,6 +740,39 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
     }
     pub_cfg("binary_sensor", node_id, "aduro_running", running_bin)
 
+    # === ENV-Defaults für Pfade/Werte (bei Bedarf anpassen) ===
+    AUGER_FORCE_PATH   = os.getenv("AUGER_FORCE_PATH", "maintenance.force_auger")
+    AUGER_FORCE_VALUE  = os.getenv("AUGER_FORCE_VALUE", "1")
+
+    CLEAN_STOVE_PATH   = os.getenv("CLEAN_STOVE_PATH", "maintenance.clean_stove")
+    CLEAN_STOVE_VALUE  = os.getenv("CLEAN_STOVE_VALUE", "1")
+
+    MODE_SWITCH_PATH   = os.getenv("MODE_SWITCH_PATH", "regulation.operation_mode")
+    # Mapping: 0=heatlevel, 1=room temperature, 2=timer
+    # ---- Button: Force Auger ----
+    force_auger_btn = {
+        "name": "Aduro H2 Force Auger",
+        "unique_id": "button.aduro_force_auger",
+        "availability": availability,
+        "device": device,
+        "command_topic": _topic("cmd/set", base),
+        "payload_press": "{\"type\":\"set\",\"path\":\"" + AUGER_FORCE_PATH + "\",\"value\":\"" + AUGER_FORCE_VALUE + "\"}",
+        "icon": "mdi:progress-wrench"
+    }
+    pub_cfg("button", node_id, "aduro_force_auger", force_auger_btn)
+
+    # ---- Button: Clean Stove ----
+    clean_stove_btn = {
+        "name": "Aduro H2 Clean Stove",
+        "unique_id": "button.aduro_clean_stove",
+        "availability": availability,
+        "device": device,
+        "command_topic": _topic("cmd/set", base),
+        "payload_press": "{\"type\":\"set\",\"path\":\"" + CLEAN_STOVE_PATH + "\",\"value\":\"" + CLEAN_STOVE_VALUE + "\"}",
+        "icon": "mdi:broom"
+    }
+    pub_cfg("button", node_id, "aduro_clean_stove", clean_stove_btn)
+
 # ================
 # Adressauswahl & Zyklus
 # ================
