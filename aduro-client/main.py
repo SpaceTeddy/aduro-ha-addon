@@ -649,6 +649,36 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
         },
     ]
 
+    # --------- Number (Heatlevel 1–3 via Slider) ----------
+    heatlevel_number_cfg = {
+        "name": "Aduro H2 Heatlevel",
+        "unique_id": "number.aduro_heatlevel_slider",
+        "availability": availability,
+        "device": device,
+
+        # Schieberegler
+        "min": 1, "max": 3, "step": 1, "mode": "slider",
+
+        # State aus STATUS -> regulation.fixed_power (10/50/100) -> 1/2/3
+        "state_topic": _topic("status", base),
+        "value_template": (
+            "{% set p = (value_json['STATUS']['regulation.fixed_power']|float)|round(0) %}"
+            "{% if p == 10 %}1{% elif p == 50 %}2{% elif p == 100 %}3{% else %}{{ 1 if p < 30 else (2 if p < 75 else 3) }}{% endif %}"
+        ),
+
+        # Befehle gehen an cmd/set als JSON, das dein Handler versteht
+        "command_topic": _topic("cmd/set", base),
+        "command_template": (
+            "{% set lvl = value|int %}"
+            "{% set pct = 10 if lvl == 1 else (50 if lvl == 2 else 100) %}"
+            "{\"type\":\"set\",\"path\":\"regulation.fixed_power\",\"value\":\"{{ pct }}\"}"
+        ),
+
+        # Optional: hübsches Icon
+        "icon": "mdi:fire"
+    }
+    pub_cfg("number", node_id, "aduro_heatlevel", heatlevel_number_cfg)
+
     # Publish alle Sensoren als Discovery
     for s in sensors:
         cfg = {
