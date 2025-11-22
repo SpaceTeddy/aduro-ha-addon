@@ -694,11 +694,25 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
                 cfg[k] = s[k]
         pub_cfg(s["component"], node_id, s["object_id"], cfg)
 
-        # ---- Button: Start ----
+    # ---- Button: Reset Alarm ----
+    RESET_ALARM_PATH  = os.getenv("RESET_ALARM_PATH", "misc.reset_alarm")
+    RESET_ALARM_VALUE = os.getenv("RESET_ALARM_VALUE", "1")
+
+    reset_alarm_btn = {
+        "name": "Aduro H2 Reset Alarm",
+        "unique_id": "button.aduro_reset_alarm",
+        "availability": availability,
+        "device": device,
+        "command_topic": _topic("cmd/set", base),
+        "payload_press": "{\"type\":\"set\",\"path\":\"" + RESET_ALARM_PATH + "\",\"value\":\"" + RESET_ALARM_VALUE + "\"}",
+        "icon": "mdi:alarm-off"
+    }
+    pub_cfg("button", node_id, "aduro_reset_alarm", reset_alarm_btn)
+    
+    # ---- Button: Start ----
     STOVE_SWITCH_PATH_ON  = os.getenv("STOVE_SWITCH_PATH_ON", "misc.start")
     STOVE_SWITCH_PATH_OFF = os.getenv("STOVE_SWITCH_PATH_OFF", "misc.stop")
     STOVE_VALUE           = os.getenv("STOVE_ON_VALUE", "1")
-
 
     stove_start_btn = {
         "name": "Aduro H2 Start",
@@ -741,16 +755,12 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
     }
     pub_cfg("binary_sensor", node_id, "aduro_running", running_bin)
 
-    # === ENV-Defaults für Pfade/Werte (bei Bedarf anpassen) ===
+
+    # Mapping: 0=heatlevel, 1=room temperature, 2=timer
+    # ---- Button: Force Auger ----
     AUGER_FORCE_PATH   = os.getenv("AUGER_FORCE_PATH", "auger.forced_run")
     AUGER_FORCE_VALUE  = os.getenv("AUGER_FORCE_VALUE", "1")
 
-    CLEAN_STOVE_PATH   = os.getenv("CLEAN_STOVE_PATH", "maintenance.clean_stove")
-    CLEAN_STOVE_VALUE  = os.getenv("CLEAN_STOVE_VALUE", "1")
-
-    MODE_SWITCH_PATH   = os.getenv("MODE_SWITCH_PATH", "regulation.operation_mode")
-    # Mapping: 0=heatlevel, 1=room temperature, 2=timer
-    # ---- Button: Force Auger ----
     force_auger_btn = {
         "name": "Aduro H2 Force Auger",
         "unique_id": "button.aduro_force_auger",
@@ -763,6 +773,9 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
     pub_cfg("button", node_id, "aduro_force_auger", force_auger_btn)
 
     # ---- Button: Clean Stove ----
+    CLEAN_STOVE_PATH   = os.getenv("CLEAN_STOVE_PATH", "maintenance.clean_stove")
+    CLEAN_STOVE_VALUE  = os.getenv("CLEAN_STOVE_VALUE", "1")
+
     clean_stove_btn = {
         "name": "Aduro H2 Clean Stove",
         "unique_id": "button.aduro_clean_stove",
@@ -773,6 +786,29 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
         "icon": "mdi:broom"
     }
     pub_cfg("button", node_id, "aduro_clean_stove", clean_stove_btn)
+
+    # ---- Select: Operation Mode (heatlevel / room temperature / timer) ----
+    MODE_SWITCH_PATH   = os.getenv("MODE_SWITCH_PATH", "regulation.operation_mode")
+    
+    mode_select_cfg = {
+        "name": "Aduro H2 Operation Mode",
+        "unique_id": "select.aduro_operation_mode",
+        "availability": availability,
+        "device": device,
+        "options": ["heatlevel", "room temperature", "timer"],
+        "state_topic": _topic("status", base),
+        "value_template": (
+            "{% set m = (value_json['STATUS']['operation_mode']|int) %}"
+            "{% if m == 0 %}heatlevel{% elif m == 1 %}room temperature{% elif m == 2 %}timer{% else %}unknown{% endif %}"
+        ),
+        "command_topic": _topic("cmd/set", base),
+        "command_template": (
+            "{% set v = 0 if value == 'heatlevel' else (1 if value == 'room temperature' else 2) %}"
+            "{\"type\":\"set\",\"path\":\"" + MODE_SWITCH_PATH + "\",\"value\":\"{{ v }}\"}"
+        ),
+        "icon": "mdi:tune"
+    }
+    pub_cfg("select", node_id, "aduro_operation_mode", mode_select_cfg)
 
 # ================
 # Adressauswahl & Zyklus
