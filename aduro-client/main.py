@@ -694,16 +694,19 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
                 cfg[k] = s[k]
         pub_cfg(s["component"], node_id, s["object_id"], cfg)
 
-    # ---- Button: Start ----
+        # ---- Button: Start ----
+    STOVE_SWITCH_PATH = os.getenv("STOVE_SWITCH_PATH", "system.on_off")
+    STOVE_ON_VALUE    = os.getenv("STOVE_ON_VALUE", "1")
+    STOVE_OFF_VALUE   = os.getenv("STOVE_OFF_VALUE", "0")
+
     stove_start_btn = {
         "name": "Aduro H2 Start",
         "unique_id": "button.aduro_stove_start",
         "availability": availability,
         "device": device,
         "command_topic": _topic("cmd/set", base),
-        "command_template": (
-            "{{'{\"type\":\"set\",\"path\":\"%s\",\"value\":\"%s\"}' % ('" + STOVE_SWITCH_PATH + "', '" + STOVE_ON_VALUE + "')}}"
-        ),
+        # Button sendet beim Drücken genau diesen Payload:
+        "payload_press": "{\"type\":\"set\",\"path\":\"" + STOVE_SWITCH_PATH + "\",\"value\":\"" + STOVE_ON_VALUE + "\"}",
         "icon": "mdi:play"
     }
     pub_cfg("button", node_id, "aduro_stove_start", stove_start_btn)
@@ -715,19 +718,19 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
         "availability": availability,
         "device": device,
         "command_topic": _topic("cmd/set", base),
-        "command_template": (
-            "{{'{\"type\":\"set\",\"path\":\"%s\",\"value\":\"%s\"}' % ('" + STOVE_SWITCH_PATH + "', '" + STOVE_OFF_VALUE + "')}}"
-        ),
+        "payload_press": "{\"type\":\"set\",\"path\":\"" + STOVE_SWITCH_PATH + "\",\"value\":\"" + STOVE_OFF_VALUE + "\"}",
         "icon": "mdi:stop"
     }
     pub_cfg("button", node_id, "aduro_stove_stop", stove_stop_btn)
 
+    # ---- Binary Sensor: Running ----
     running_bin = {
         "name": "Aduro H2 Running",
         "unique_id": "binary_sensor.aduro_running",
         "availability": availability,
         "device": device,
         "state_topic": _topic("status", base),
+        # liefert ON/OFF (Default-Payloads für binary_sensor)
         "value_template": (
             "{% set s = (value_json['STATUS']['state']|int) %}"
             "{% if s in [5,6,9,11,32] %}ON{% else %}OFF{% endif %}"
