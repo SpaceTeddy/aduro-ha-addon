@@ -679,6 +679,37 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
     }
     pub_cfg("number", node_id, "aduro_heatlevel", heatlevel_number_cfg)
 
+    # ---- Number: Setpoint Temperature (Solltemperatur) ----
+    BOILER_TEMP_PATH = os.getenv("BOILER_TEMP_PATH", "boiler.temp")
+
+    set_temp_number_cfg = {
+        "name": "Aduro H2 Target Temperature",
+        "unique_id": "number.aduro_target_temperature",
+        "availability": availability,
+        "device": device,
+        "icon": "mdi:thermostat",
+        "unit_of_measurement": "°C",
+        "device_class": "temperature",
+
+        # Slider-Eigenschaften
+        "min": 10,
+        "max": 30,
+        "step": 0.5,
+        "mode": "slider",
+
+        # Status wird aus STATUS.boiler_ref gelesen
+        "state_topic": _topic("status", base),
+        "value_template": "{{ (value_json['STATUS']['boiler_ref']|float) | round(1) }}",
+
+        # Beim Verstellen sendet HA JSON an dein cmd/set
+        "command_topic": _topic("cmd/set", base),
+        "command_template": (
+            "{\"type\":\"set\",\"path\":\"" + BOILER_TEMP_PATH + "\","
+            "\"value\":\"{{ value | round(1) }}\"}"
+        )
+    }
+    pub_cfg("number", node_id, "aduro_target_temperature", set_temp_number_cfg)
+
     # Publish alle Sensoren als Discovery
     for s in sensors:
         cfg = {
@@ -756,7 +787,6 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
     pub_cfg("binary_sensor", node_id, "aduro_running", running_bin)
 
 
-    # Mapping: 0=heatlevel, 1=room temperature, 2=timer
     # ---- Button: Force Auger ----
     AUGER_FORCE_PATH   = os.getenv("AUGER_FORCE_PATH", "auger.forced_run")
     AUGER_FORCE_VALUE  = os.getenv("AUGER_FORCE_VALUE", "1")
@@ -788,6 +818,7 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
     pub_cfg("button", node_id, "aduro_clean_stove", clean_stove_btn)
 
     # ---- Select: Operation Mode (heatlevel / room temperature / timer) ----
+    # Mapping: 0=heatlevel, 1=room temperature, 2=timer
     MODE_SWITCH_PATH   = os.getenv("MODE_SWITCH_PATH", "regulation.operation_mode")
     
     mode_select_cfg = {
