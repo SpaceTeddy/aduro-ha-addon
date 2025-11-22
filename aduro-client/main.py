@@ -694,6 +694,49 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
                 cfg[k] = s[k]
         pub_cfg(s["component"], node_id, s["object_id"], cfg)
 
+    # ---- Button: Start ----
+    stove_start_btn = {
+        "name": "Aduro H2 Start",
+        "unique_id": "button.aduro_stove_start",
+        "availability": availability,
+        "device": device,
+        "command_topic": _topic("cmd/set", base),
+        "command_template": (
+            "{{'{\"type\":\"set\",\"path\":\"%s\",\"value\":\"%s\"}' % ('" + STOVE_SWITCH_PATH + "', '" + STOVE_ON_VALUE + "')}}"
+        ),
+        "icon": "mdi:play"
+    }
+    pub_cfg("button", node_id, "aduro_stove_start", stove_start_btn)
+
+    # ---- Button: Stop ----
+    stove_stop_btn = {
+        "name": "Aduro H2 Stop",
+        "unique_id": "button.aduro_stove_stop",
+        "availability": availability,
+        "device": device,
+        "command_topic": _topic("cmd/set", base),
+        "command_template": (
+            "{{'{\"type\":\"set\",\"path\":\"%s\",\"value\":\"%s\"}' % ('" + STOVE_SWITCH_PATH + "', '" + STOVE_OFF_VALUE + "')}}"
+        ),
+        "icon": "mdi:stop"
+    }
+    pub_cfg("button", node_id, "aduro_stove_stop", stove_stop_btn)
+
+    running_bin = {
+        "name": "Aduro H2 Running",
+        "unique_id": "binary_sensor.aduro_running",
+        "availability": availability,
+        "device": device,
+        "state_topic": _topic("status", base),
+        "value_template": (
+            "{% set s = (value_json['STATUS']['state']|int) %}"
+            "{% if s in [5,6,9,11,32] %}ON{% else %}OFF{% endif %}"
+        ),
+        "device_class": "power",
+        "icon": "mdi:fire"
+    }
+    pub_cfg("binary_sensor", node_id, "aduro_running", running_bin)
+
 # ================
 # Adressauswahl & Zyklus
 # ================
