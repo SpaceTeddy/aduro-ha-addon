@@ -725,6 +725,18 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
                 cfg[k] = s[k]
         pub_cfg(s["component"], node_id, s["object_id"], cfg)
 
+    # ---- Button: fetch all data ----
+    fetch_all_btn = {
+        "name": "Aduro H2 Fetch ALL",
+        "unique_id": "button.aduro_fetch_all",
+        "availability": availability,
+        "device": device,
+        "command_topic": _topic("cmd/set", base),
+        "payload_press": "{\"type\":\"set\",\"path\":\"__refresh__\",\"value\":\"all\"}",
+        "icon": "mdi:database-sync"
+    }
+    pub_cfg("button", node_id, "aduro_fetch_all", fetch_all_btn)
+
     # ---- Button: Reset Alarm ----
     RESET_ALARM_PATH  = os.getenv("RESET_ALARM_PATH", "misc.reset_alarm")
     RESET_ALARM_VALUE = os.getenv("RESET_ALARM_VALUE", "1")
@@ -1010,6 +1022,24 @@ def handle_command_message(client: mqtt.Client, base_topic: str, payload_bytes: 
         payload.update(extra)
         client.publish(base_topic + "cmd/resp", json.dumps(payload), qos=0, retain=False)
 
+    def _publish_full_refresh():
+        try:
+            r, p = get_status(stove_ip, serial, pin)
+            if r != -1 and p:
+                client.publish(base_topic + "status", p)
+            r, p = get_operating_data(stove_ip, serial, pin)
+            if r != -1 and p:
+                client.publish(base_topic + "operating_data", p)
+            r, p = get_network_data(stove_ip, serial, pin)
+            if r != -1 and p:
+                client.publish(base_topic + "network", p)
+            r, p = get_consumption_data(stove_ip, serial, pin)
+            if r != -1 and p:
+                client.publish(base_topic + "consumption_data", p)
+            logging.info("[REFRESH] full refresh published (status+operating+network+consumption)")
+        except Exception as e:
+            logging.warning(f"[REFRESH] full refresh failed: {e}")
+
     try:
         data = json.loads(payload_bytes.decode("utf-8"))
         if not data or not isinstance(data, dict) or "type" not in data:
@@ -1017,6 +1047,14 @@ def handle_command_message(client: mqtt.Client, base_topic: str, payload_bytes: 
             return
     except Exception as e:
         _ack(False, None, err=f"invalid json: {e}")
+        return
+    
+    # --- SPECIAL: full refresh via pseudo-path ---
+    if str(data.get("type","")).lower() == "set" and str(data.get("path","")) == "__refresh__":
+        if not fast_ack:
+            _ack(True, c_id)
+        _resp(True, c_id, result={"refresh": "all"})
+        _publish_full_refresh()
         return
 
     c_id = data.get("correlation_id")
@@ -1095,6 +1133,7 @@ def handle_command_message(client: mqtt.Client, base_topic: str, payload_bytes: 
         _resp(True, c_id, result={"elapsed_ms": dt_ms, "ip": stove_ip, **result})
         # Sofortiger Refresh nach erfolgreichem Kommando
         try:
+            # _publish_full_refresh() # full refresh commented out to reduce load
             r, p = get_status(stove_ip, serial, pin)
             if r != -1 and p:
                 client.publish(base_topic + "status", p)
