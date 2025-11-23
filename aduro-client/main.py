@@ -649,6 +649,65 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
         },
     ]
 
+    # --------- DISCOVERY Diagnostics (SW Version, Build, Type, Firmware) ----------
+    diag_sensors = [
+        {
+            "component": "sensor",
+            "object_id": "aduro_sw_version",
+            "unique_id": "sensor.aduro_sw_version",
+            "name": "Aduro H2 SW Version",
+            "state_topic": _topic("discovery", base),
+            "value_template": "{{ value_json.DISCOVERY.StoveSWVersion }}",
+            "icon": "mdi:numeric",
+            "entity_category": "diagnostic",
+        },
+        {
+            "component": "sensor",
+            "object_id": "aduro_sw_build",
+            "unique_id": "sensor.aduro_sw_build",
+            "name": "Aduro H2 SW Build",
+            "state_topic": _topic("discovery", base),
+            "value_template": "{{ value_json.DISCOVERY.StoveSWBuild }}",
+            "icon": "mdi:tools",
+            "entity_category": "diagnostic",
+        },
+        {
+            "component": "sensor",
+            "object_id": "aduro_nbe_type",
+            "unique_id": "sensor.aduro_nbe_type",
+            "name": "Aduro H2 NBE Type",
+            "state_topic": _topic("discovery", base),
+            "value_template": "{{ value_json.DISCOVERY.NBE_Type }}",
+            "icon": "mdi:cog",
+            "entity_category": "diagnostic",
+        },
+        {
+            "component": "sensor",
+            "object_id": "aduro_firmware",
+            "unique_id": "sensor.aduro_firmware",
+            "name": "Aduro H2 Firmware",
+            "state_topic": _topic("discovery", base),
+            "value_template": "{{ value_json.DISCOVERY.StoveSWVersion ~ ' (' ~ value_json.DISCOVERY.StoveSWBuild ~ ')' }}",
+            "icon": "mdi:chip",
+            "entity_category": "diagnostic",
+            "json_attributes_topic": _topic("discovery", base),
+            "json_attributes_template": "{{ value_json.DISCOVERY | tojson }}",
+        },
+    ]
+
+    for s in diag_sensors:
+        cfg = {
+            "name": s["name"],
+            "unique_id": s["unique_id"],
+            "state_topic": s["state_topic"],
+            "value_template": s["value_template"],
+            "availability": availability,
+            "device": device,
+        }
+        for k in ("icon","entity_category","json_attributes_topic","json_attributes_template"):
+            if k in s: cfg[k] = s[k]
+        pub_cfg(s["component"], node_id, s["object_id"], cfg)
+
     # --------- Number (Heatlevel 1–3 via Slider) ----------
     heatlevel_number_cfg = {
         "name": "Aduro H2 Heatlevel",
