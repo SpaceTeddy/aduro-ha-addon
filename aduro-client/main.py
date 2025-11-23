@@ -1049,16 +1049,16 @@ def handle_command_message(client: mqtt.Client, base_topic: str, payload_bytes: 
         _ack(False, None, err=f"invalid json: {e}")
         return
     
+    c_id = data.get("correlation_id")
+    ctype = str(data.get("type", "")).lower().strip()
+
     # --- SPECIAL: full refresh via pseudo-path ---
-    if str(data.get("type","")).lower() == "set" and str(data.get("path","")) == "__refresh__":
+    if ctype == "set" and str(data.get("path", "")) == "__refresh__":
         if not fast_ack:
             _ack(True, c_id)
         _resp(True, c_id, result={"refresh": "all"})
         _publish_full_refresh()
         return
-
-    c_id = data.get("correlation_id")
-    ctype = str(data.get("type", "")).lower().strip()
 
     if ctype not in ("raw", "set", "get"):
         _ack(False, c_id, err=f"unsupported type '{ctype}'")
