@@ -1054,10 +1054,17 @@ def handle_command_message(client: mqtt.Client, base_topic: str, payload_bytes: 
 
     # --- SPECIAL: full refresh via pseudo-path ---
     if ctype == "set" and str(data.get("path", "")) == "__refresh__":
-        if not fast_ack:
-            _ack(True, c_id)
-        _resp(True, c_id, result={"refresh": "all"})
-        _publish_full_refresh()
+        try:
+            if fast_ack:
+                _ack(True, c_id, accepted=True)
+            _publish_full_refresh()
+            if not fast_ack:
+                _ack(True, c_id)
+            _resp(True, c_id, result={"refresh": "all"})
+        except Exception as e:
+            if not fast_ack:
+                _ack(False, c_id, err=str(e))
+            _resp(False, c_id, err=str(e))
         return
 
     if ctype not in ("raw", "set", "get"):
