@@ -10,6 +10,250 @@ from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeou
 import requests
 import paho.mqtt.client as mqtt
 
+# ========================
+# HA Card
+# ========================
+ADURO_DASHBOARD_YAML_TMPL = r"""\
+type: vertical-stack
+cards:
+  - type: custom:apexcharts-card
+    experimental:
+      color_threshold: true
+    apex_config:
+      chart:
+        zoom:
+          enabled: true
+          type: x
+          autoScaleYaxis: true
+          zoomedArea:
+            fill:
+              opacity: 0.4
+            stroke:
+              opacity: 0.4
+              width: 1
+      legend:
+        show: true
+        floating: true
+        offsetY: 25
+      annotations:
+        yaxis:
+          - y: 300
+            borderColor: "#00FF00"
+            borderWidth: 3
+            label:
+              text: 300
+              style:
+                color: "#FFFF00"
+                background: "#000000"
+          - y: 120
+            borderColor: "#00FF00"
+            borderWidth: 3
+            label:
+              text: 120
+              style:
+                color: "#FFFF00"
+                background: "#000000"
+    header:
+      show: true
+      title: Aduro H2
+      show_states: true
+      colorize_states: true
+    graph_span: 24h
+    span:
+      start: day
+    now:
+      show: true
+    yaxis:
+      - id: first
+        min: 0
+        max: 350
+        decimals: 0
+        apex_config:
+          tickAmount: 4
+    series:
+      - entity: sensor.aduro_h2_smoke_temperature
+        yaxis_id: first
+        unit: " °C"
+        show:
+          extremas: true
+          header_color_threshold: true
+        type: line
+        color_threshold:
+          - value: 0
+            color: "#000000"
+          - value: 90
+            color: "#00ff00"
+          - value: 160
+            color: "#ffa500"
+          - value: 300
+            color: "#ff0000"
+        stroke_width: 2
+        curve: smooth
+        extend_to: now
+        color: red
+  - type: vertical-stack
+    cards:
+      - type: heading
+        heading: Control
+        heading_style: title
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+          - type: entity
+            entity: binary_sensor.aduro_h2_{{SERIAL}}_aduro_h2_running
+            name: Running
+            icon: mdi:fire
+          - type: entity
+            entity: sensor.aduro_h2_state_name
+            name: State
+            icon: mdi:state-machine
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+          - type: entity
+            entity: select.aduro_h2_{{SERIAL}}_aduro_h2_operation_mode
+            name: Mode
+            icon: mdi:power-settings
+          - type: entity
+            entity: number.aduro_h2_{{SERIAL}}_aduro_h2_heatlevel
+            name: Heatlevel
+            icon: mdi:fire
+      - type: grid
+        columns: 1
+        square: false
+        cards:
+          - type: entity
+            entity: number.aduro_h2_{{SERIAL}}_aduro_h2_target_temperature
+            name: Target Temperature in Room Temp mode
+            icon: mdi:temperature-celsius
+      - type: grid
+        columns: 6
+        square: false
+        cards:
+          - type: button
+            name: Fetch data
+            icon: mdi:download
+            tap_action:
+              action: call-service
+              service: button.press
+              target:
+                entity_id: button.aduro_h2_{{SERIAL}}_aduro_h2_fetch_all
+          - type: button
+            entity: button.aduro_h2_{{SERIAL}}_aduro_h2_start
+            name: Start
+            icon: mdi:play
+            tap_action:
+              action: call-service
+              service: button.press
+              target:
+                entity_id: button.aduro_h2_{{SERIAL}}_aduro_h2_start
+          - type: button
+            entity: button.aduro_h2_{{SERIAL}}_aduro_h2_stop
+            name: Stop
+            icon: mdi:stop
+            tap_action:
+              action: call-service
+              service: button.press
+              target:
+                entity_id: button.aduro_h2_{{SERIAL}}_aduro_h2_stop
+          - type: button
+            entity: button.aduro_h2_{{SERIAL}}_aduro_h2_force_auger
+            name: Auger
+            icon: mdi:snake
+            tap_action:
+              action: call-service
+              service: button.press
+              target:
+                entity_id: button.aduro_h2_{{SERIAL}}_aduro_h2_force_auger
+          - type: button
+            entity: button.aduro_h2_{{SERIAL}}_aduro_h2_reset_alarm
+            name: Reset
+            icon: mdi:alarm-off
+            tap_action:
+              action: call-service
+              service: button.press
+              target:
+                entity_id: button.aduro_h2_{{SERIAL}}_aduro_h2_reset_alarm
+  - type: vertical-stack
+    cards:
+      - type: heading
+        heading: Sensors
+        heading_style: title
+      - type: entities
+        title: Temperature & Power
+        show_header_toggle: false
+        entities:
+          - sensor.aduro_h2_smoke_temperature
+          - sensor.aduro_h2_shaft_temperature
+          - sensor.aduro_h2_room_temperature
+          - sensor.aduro_h2_room_target_temperature
+          - sensor.aduro_h2_stove_heatlevel
+          - sensor.aduro_h2_power
+          - sensor.aduro_h2_oxygen
+      - type: entities
+        title: Status
+        show_header_toggle: false
+        entities:
+          - sensor.aduro_h2_state_name
+          - sensor.aduro_h2_substate_name
+          - sensor.aduro_h2_substate_seconds
+          - sensor.aduro_h2_alarm
+      - type: entities
+        title: Consumption
+        show_header_toggle: false
+        entities:
+          - sensor.aduro_h2_consumption_day
+          - sensor.aduro_h2_consumption_yesterday
+          - sensor.aduro_h2_consumption_month
+          - sensor.aduro_h2_consumption_year
+      - type: entities
+        title: Discovery / Meta
+        show_header_toggle: false
+        entities:
+          - sensor.aduro_h2_stove_serial
+          - sensor.aduro_h2_stove_ip
+          - sensor.aduro_h2_{{SERIAL}}_aduro_h2_firmware
+          - sensor.aduro_h2_{{SERIAL}}_aduro_h2_nbe_type
+          - sensor.aduro_h2_{{SERIAL}}_aduro_h2_sw_build
+          - sensor.aduro_h2_{{SERIAL}}_aduro_h2_sw_version
+"""
+
+# =========================
+# HA SERIAL helper
+# =========================
+def _get_stove_serial_for_dashboard() -> str:
+    # 1. STOVE_SERIAL env
+    serial = (os.getenv("STOVE_SERIAL") or "").strip()
+    if serial:
+        return serial
+
+    # 2. try Discovery
+    try:
+        _, _, serial_from_disc, _ = get_discovery_data()
+        serial_from_disc = (serial_from_disc or "").strip()
+        if serial_from_disc:
+            return serial_from_disc
+    except Exception:
+        pass
+
+    # 3. Fallback
+    return "unknown"
+
+def install_dashboard():
+    cfg = os.getenv("CONFIG_PATH", "/config")
+    out_file = os.path.join(cfg, "dashboards", "aduro_h2_dashboard.yaml")
+    os.makedirs(os.path.dirname(out_file), exist_ok=True)
+
+    serial = _get_stove_serial_for_dashboard()
+    yaml_content = ADURO_DASHBOARD_YAML_TMPL.replace("{{SERIAL}}", serial)
+
+    with open(out_file, "w", encoding="utf-8") as f:
+        f.write(yaml_content)
+
+    logging.info(f"[ASSETS] wrote Lovelace dashboard to {out_file} (serial={serial})")
+
 # =========================
 # Logging & Debug-Publishes
 # =========================
