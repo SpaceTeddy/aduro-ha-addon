@@ -640,7 +640,7 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
         # STATUS-basierte Sensoren
         {
             "component": "sensor",
-            "object_id": "aduro_smoketemperature",
+            "object_id": "smoketemperature",
             "unique_id": "sensor.aduro_smoketemperature",
             "name": "Smoke Temperature",
             "state_topic": _topic("status", base),
@@ -650,7 +650,7 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
         },
         {
             "component": "sensor",
-            "object_id": "aduro_shafttemperature",
+            "object_id": "shafttemperature",
             "unique_id": "sensor.aduro_shafttemperature",
             "name": "Shaft Temperature",
             "state_topic": _topic("status", base),
@@ -660,7 +660,7 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
         },
         {
             "component": "sensor",
-            "object_id": "aduro_boiler_temp",
+            "object_id": "boiler_temp",
             "unique_id": "sensor.aduro_boiler_temp",
             "name": "Room Temperature",
             "state_topic": _topic("status", base),
@@ -670,7 +670,7 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
         },
         {
             "component": "sensor",
-            "object_id": "aduro_boiler_ref",
+            "object_id": "boiler_ref",
             "unique_id": "sensor.aduro_boiler_ref",
             "name": "Room Target Temperature",
             "state_topic": _topic("status", base),
@@ -680,7 +680,7 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
         },
         {
             "component": "sensor",
-            "object_id": "aduro_dhw_temp",
+            "object_id": "dhw_temp",
             "unique_id": "sensor.aduro_dhw_temp",
             "name": "DHW Temperature",
             "state_topic": _topic("status", base),
@@ -690,7 +690,7 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
         },
         {
             "component": "sensor",
-            "object_id": "aduro_power_kw",
+            "object_id": "power_kw",
             "unique_id": "sensor.aduro_power_kw",
             "name": "Power kW",
             "state_topic": _topic("status", base),
@@ -700,7 +700,7 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
         },
         {
             "component": "sensor",
-            "object_id": "aduro_power_w",
+            "object_id": "power_w",
             "unique_id": "sensor.aduro_power_w",
             "name": "Power W",
             "state_topic": _topic("status", base),
@@ -710,7 +710,7 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
         },
         {
             "component": "sensor",
-            "object_id": "aduro_operation_mode",
+            "object_id": "operation_mode",
             "unique_id": "sensor.aduro_operation_mode",
             "name": "Operation Mode",
             "state_topic": _topic("status", base),
@@ -718,7 +718,7 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
         },
         {
             "component": "sensor",
-            "object_id": "aduro_operation_mode_name",
+            "object_id": "operation_mode_name",
             "unique_id": "sensor.aduro_operation_mode_name",
             "name": "Operation Mode Name",
             "state_topic": _topic("status", base),
@@ -730,7 +730,7 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
         },
         {
             "component": "sensor",
-            "object_id": "aduro_state",
+            "object_id": "state",
             "unique_id": "sensor.aduro_state",
             "name": "State",
             "state_topic": _topic("status", base),
@@ -738,7 +738,7 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
         },
         {
             "component": "sensor",
-            "object_id": "aduro_state_name",
+            "object_id": "state_name",
             "unique_id": "sensor.aduro_state_name",
             "name": "State Name",
             "state_topic": _topic("status", base),
@@ -767,7 +767,7 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
         },
         {
             "component": "sensor",
-            "object_id": "aduro_substate",
+            "object_id": "substate",
             "unique_id": "sensor.aduro_substate",
             "name": "Substate",
             "state_topic": _topic("status", base),
@@ -775,7 +775,7 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
         },
         {
             "component": "sensor",
-            "object_id": "aduro_substate_name",
+            "object_id": "substate_name",
             "unique_id": "sensor.aduro_substate_name",
             "name": "Substate Name",
             "state_topic": _topic("status", base),
@@ -789,7 +789,7 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
         },
         {
             "component": "sensor",
-            "object_id": "aduro_substate_sec",
+            "object_id": "substate_sec",
             "unique_id": "sensor.aduro_substate_sec",
             "name": "Substate remaining time",
             "state_topic": _topic("status", base),
@@ -800,7 +800,7 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
         },
         {
             "component": "sensor",
-            "object_id": "aduro_off_on_alarm",
+            "object_id": "off_on_alarm",
             "unique_id": "sensor.aduro_off_on_alarm",
             "name": "last Alarm",
             "state_topic": _topic("status", base),
@@ -812,7 +812,7 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
         },
         {
             "component": "sensor",
-            "object_id": "aduro_oxygen",
+            "object_id": "oxygen",
             "unique_id": "sensor.aduro_oxygen",
             "name": "Oxygen",
             "state_topic": _topic("status", base),
@@ -823,7 +823,7 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
         # CONSUMPTION-basierte Sensoren
         {
             "component": "sensor",
-            "object_id": "aduro_consumption_day",
+            "object_id": "consumption_day",
             "unique_id": "sensor.aduro_consumption_day",
             "name": "Consumption Day",
             "state_topic": _topic("consumption_data", base),
@@ -833,7 +833,7 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
         },
         {
             "component": "sensor",
-            "object_id": "aduro_consumption_yesterday",
+            "object_id": "consumption_yesterday",
             "unique_id": "sensor.aduro_consumption_yesterday",
             "name": "Consumption Yesterday",
             "state_topic": _topic("consumption_data", base),
@@ -843,7 +843,7 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
         },
         {
             "component": "sensor",
-            "object_id": "aduro_consumption_month",
+            "object_id": "consumption_month",
             "unique_id": "sensor.aduro_consumption_month",
             "name": "Consumption Month",
             "state_topic": _topic("consumption_data", base),
@@ -853,7 +853,7 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
         },
         {
             "component": "sensor",
-            "object_id": "aduro_consumption_year",
+            "object_id": "consumption_year",
             "unique_id": "sensor.aduro_consumption_year",
             "name": "Consumption Year",
             "state_topic": _topic("consumption_data", base),
@@ -865,7 +865,7 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
         # DISCOVERY-basierte Sensoren
         {
             "component": "sensor",
-            "object_id": "aduro_stove_serial",
+            "object_id": "stove_serial",
             "unique_id": "sensor.aduro_stove_serial",
             "name": "Stove Serial",
             "state_topic": _topic("discovery", base),
@@ -873,7 +873,7 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
         },
         {
             "component": "sensor",
-            "object_id": "aduro_stove_ip",
+            "object_id": "stove_ip",
             "unique_id": "sensor.aduro_stove_ip",
             "name": "Stove IP",
             "state_topic": _topic("discovery", base),
@@ -881,7 +881,7 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
         },
         {
             "component": "sensor",
-            "object_id": "aduro_stove_heatlevel",
+            "object_id": "stove_heatlevel",
             "unique_id": "sensor.aduro_stove_heatlevel",
             "name": "Stove Heatlevel",
             "state_topic": _topic("status", base),
@@ -897,7 +897,7 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
     diag_sensors = [
         {
             "component": "sensor",
-            "object_id": "aduro_sw_version",
+            "object_id": "sw_version",
             "unique_id": "sensor.aduro_sw_version",
             "name": "SW Version",
             "state_topic": _topic("discovery", base),
@@ -907,7 +907,7 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
         },
         {
             "component": "sensor",
-            "object_id": "aduro_sw_build",
+            "object_id": "sw_build",
             "unique_id": "sensor.aduro_sw_build",
             "name": "SW Build",
             "state_topic": _topic("discovery", base),
@@ -917,7 +917,7 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
         },
         {
             "component": "sensor",
-            "object_id": "aduro_nbe_type",
+            "object_id": "nbe_type",
             "unique_id": "sensor.aduro_nbe_type",
             "name": "NBE Type",
             "state_topic": _topic("discovery", base),
@@ -927,7 +927,7 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
         },
         {
             "component": "sensor",
-            "object_id": "aduro_firmware",
+            "object_id": "firmware",
             "unique_id": "sensor.aduro_firmware",
             "name": "Firmware",
             "state_topic": _topic("discovery", base),
@@ -955,7 +955,7 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
     # --------- Number (Heatlevel 1–3 via Slider) ----------
     heatlevel_number_cfg = {
         "name": "Aduro H2 Heatlevel",
-        "unique_id": "number.aduro_heatlevel_slider",
+        "unique_id": "number.heatlevel_slider",
         "availability": availability,
         "device": device,
 
@@ -980,14 +980,14 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
         # Optional: hübsches Icon
         "icon": "mdi:fire"
     }
-    pub_cfg("number", node_id, "aduro_heatlevel", heatlevel_number_cfg)
+    pub_cfg("number", node_id, "heatlevel", heatlevel_number_cfg)
 
     # ---- Number: Setpoint Temperature (Solltemperatur) ----
     BOILER_TEMP_PATH = os.getenv("BOILER_TEMP_PATH", "boiler.temp")
 
     set_temp_number_cfg = {
         "name": "Aduro H2 Target Temperature",
-        "unique_id": "number.aduro_target_temperature",
+        "unique_id": "number.target_temperature",
         "availability": availability,
         "device": device,
         "icon": "mdi:thermostat",
@@ -1011,7 +1011,7 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
             "\"value\":\"{{ value | round(1) }}\"}"
         )
     }
-    pub_cfg("number", node_id, "aduro_target_temperature", set_temp_number_cfg)
+    pub_cfg("number", node_id, "target_temperature", set_temp_number_cfg)
 
     # Publish alle Sensoren als Discovery
     for s in sensors:
@@ -1031,14 +1031,14 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
     # ---- Button: fetch all data ----
     fetch_all_btn = {
         "name": "Aduro H2 Fetch ALL",
-        "unique_id": "button.aduro_fetch_all",
+        "unique_id": "button.fetch_all",
         "availability": availability,
         "device": device,
         "command_topic": _topic("cmd/set", base),
         "payload_press": "{\"type\":\"set\",\"path\":\"__refresh__\",\"value\":\"all\"}",
         "icon": "mdi:database-sync"
     }
-    pub_cfg("button", node_id, "aduro_fetch_all", fetch_all_btn)
+    pub_cfg("button", node_id, "fetch_all", fetch_all_btn)
 
     # ---- Button: Reset Alarm ----
     RESET_ALARM_PATH  = os.getenv("RESET_ALARM_PATH", "misc.reset_alarm")
@@ -1046,14 +1046,14 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
 
     reset_alarm_btn = {
         "name": "Aduro H2 Reset Alarm",
-        "unique_id": "button.aduro_reset_alarm",
+        "unique_id": "button.reset_alarm",
         "availability": availability,
         "device": device,
         "command_topic": _topic("cmd/set", base),
         "payload_press": "{\"type\":\"set\",\"path\":\"" + RESET_ALARM_PATH + "\",\"value\":\"" + RESET_ALARM_VALUE + "\"}",
         "icon": "mdi:alarm-off"
     }
-    pub_cfg("button", node_id, "aduro_reset_alarm", reset_alarm_btn)
+    pub_cfg("button", node_id, "reset_alarm", reset_alarm_btn)
     
     # ---- Button: Start ----
     STOVE_SWITCH_PATH_ON  = os.getenv("STOVE_SWITCH_PATH_ON", "misc.start")
@@ -1062,7 +1062,7 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
 
     stove_start_btn = {
         "name": "Aduro H2 Start",
-        "unique_id": "button.aduro_stove_start",
+        "unique_id": "button.stove_start",
         "availability": availability,
         "device": device,
         "command_topic": _topic("cmd/set", base),
@@ -1070,24 +1070,24 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
         "payload_press": "{\"type\":\"set\",\"path\":\"" + STOVE_SWITCH_PATH_ON + "\",\"value\":\"" + STOVE_VALUE + "\"}",
         "icon": "mdi:play"
     }
-    pub_cfg("button", node_id, "aduro_stove_start", stove_start_btn)
+    pub_cfg("button", node_id, "stove_start", stove_start_btn)
 
     # ---- Button: Stop ----
     stove_stop_btn = {
         "name": "Aduro H2 Stop",
-        "unique_id": "button.aduro_stove_stop",
+        "unique_id": "button.stove_stop",
         "availability": availability,
         "device": device,
         "command_topic": _topic("cmd/set", base),
         "payload_press": "{\"type\":\"set\",\"path\":\"" + STOVE_SWITCH_PATH_OFF + "\",\"value\":\"" + STOVE_VALUE + "\"}",
         "icon": "mdi:stop"
     }
-    pub_cfg("button", node_id, "aduro_stove_stop", stove_stop_btn)
+    pub_cfg("button", node_id, "stove_stop", stove_stop_btn)
 
     # ---- Binary Sensor: Running ----
     running_bin = {
         "name": "Aduro H2 Running",
-        "unique_id": "binary_sensor.aduro_running",
+        "unique_id": "binary_sensor.running",
         "availability": availability,
         "device": device,
         "state_topic": _topic("status", base),
@@ -1099,7 +1099,7 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
         "device_class": "power",
         "icon": "mdi:fire"
     }
-    pub_cfg("binary_sensor", node_id, "aduro_running", running_bin)
+    pub_cfg("binary_sensor", node_id, "running", running_bin)
 
 
     # ---- Button: Force Auger ----
@@ -1108,14 +1108,14 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
 
     force_auger_btn = {
         "name": "Aduro H2 Force Auger",
-        "unique_id": "button.aduro_force_auger",
+        "unique_id": "button.force_auger",
         "availability": availability,
         "device": device,
         "command_topic": _topic("cmd/set", base),
         "payload_press": "{\"type\":\"set\",\"path\":\"" + AUGER_FORCE_PATH + "\",\"value\":\"" + AUGER_FORCE_VALUE + "\"}",
         "icon": "mdi:progress-wrench"
     }
-    pub_cfg("button", node_id, "aduro_force_auger", force_auger_btn)
+    pub_cfg("button", node_id, "force_auger", force_auger_btn)
 
     # ---- Button: Clean Stove ----
     CLEAN_STOVE_PATH   = os.getenv("CLEAN_STOVE_PATH", "maintenance.clean_stove")
@@ -1123,14 +1123,14 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
 
     clean_stove_btn = {
         "name": "Aduro H2 Clean Stove",
-        "unique_id": "button.aduro_clean_stove",
+        "unique_id": "button.clean_stove",
         "availability": availability,
         "device": device,
         "command_topic": _topic("cmd/set", base),
         "payload_press": "{\"type\":\"set\",\"path\":\"" + CLEAN_STOVE_PATH + "\",\"value\":\"" + CLEAN_STOVE_VALUE + "\"}",
         "icon": "mdi:broom"
     }
-    pub_cfg("button", node_id, "aduro_clean_stove", clean_stove_btn)
+    pub_cfg("button", node_id, "clean_stove", clean_stove_btn)
 
     # ---- Select: Operation Mode (heatlevel / room temperature / timer) ----
     # Mapping: 0=heatlevel, 1=room temperature, 2=timer
@@ -1138,7 +1138,7 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
     
     mode_select_cfg = {
         "name": "Aduro H2 Operation Mode",
-        "unique_id": "select.aduro_operation_mode",
+        "unique_id": "select.operation_mode",
         "availability": availability,
         "device": device,
         "options": ["heatlevel", "room temperature", "timer"],
@@ -1154,7 +1154,7 @@ def publish_mqtt_discovery(client: mqtt.Client, userdata: dict):
         ),
         "icon": "mdi:tune"
     }
-    pub_cfg("select", node_id, "aduro_operation_mode", mode_select_cfg)
+    pub_cfg("select", node_id, "operation_mode", mode_select_cfg)
 
 # ================
 # Adressauswahl & Zyklus
