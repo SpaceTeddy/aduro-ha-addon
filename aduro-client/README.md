@@ -2,7 +2,7 @@
 
 [![Build & Publish](https://img.shields.io/github/actions/workflow/status/spaceteddy/aduro-ha-addon/build.yml?branch=main)](https://github.com/spaceteddy/aduro-ha-addon/actions)
 [![GHCR Image](https://img.shields.io/badge/GHCR-ghcr.io%2Fspaceteddy%2Faduro--client-blue)](https://ghcr.io/spaceteddy/aduro-client)
-![Version](https://img.shields.io/badge/version-0.6.2-informational)
+![Version](https://img.shields.io/badge/version-0.8.2-informational)
 
 This Add-on read data from Aduro Stove (via `pyduro`).
 
